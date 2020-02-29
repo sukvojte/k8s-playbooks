@@ -1,0 +1,53 @@
+---
+  - debug:
+      msg: "Configure kubelet for {{ instance }}"
+
+  - include: playbooks/install_kube_binaries.yaml
+    vars:
+      BINARY_NAME: kubelet
+
+  - name: Create /var/lib/kubelet
+    file:
+      path: /var/lib/kubelet/
+      state: directory
+    become: true
+
+  - name: Create kubelet config
+    template:
+      src: ../templates/kubelet/kubelet-config.yaml.j2
+      dest: /var/lib/kubelet/kubelet-config.yaml
+    become: true
+
+  - include: playbooks/configure_kube_context.yaml
+    vars:
+      context_type: "{{ instance }}"
+      user_ident: "system:node:{{ instance }}"
+      TARGET: /var/lib/kubelet/
+  
+  - name: Create /var/lib/kubelet/kubeconfig
+    copy:
+      remote_src: yes
+      mode: +x
+      owner: root
+      group: root
+      src: "/var/lib/kubelet/{{ instance }}.kubeconfig"
+      dest: /var/lib/kubelet/kubeconfig
+    become: true
+  
+  - name: Create kubelet service
+    template:
+      src: ../templates/kubelet/kubelet.service.j2
+      dest: /etc/systemd/system/kubelet.service
+    become: true
+  
+  - name: Reload systemd service
+    systemd:
+      daemon_reload: yes
+    become: yes
+
+  - name: Start kubelet service
+    systemd:
+      state: restarted
+      enabled: yes
+      name: kubelet
+    become: yes

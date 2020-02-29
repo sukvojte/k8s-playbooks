@@ -1,0 +1,41 @@
+
+## Kubernetes Admin cert      
+  - include: playbooks/ssl/generate_certificate.yaml
+    vars:
+      certificate_cn: admin
+      file_name: admin
+      SSL_ORGANIZATION: system:masters
+  
+## Kubernetes Controller Manager cert      
+  - include: playbooks/ssl/generate_certificate.yaml
+    vars:
+      certificate_cn: system:kube-controller-manager
+      file_name: kube-controller-manager
+      SSL_ORGANIZATION: system:kube-controller-manager
+  
+## Kubernetes Kube proxy cert      
+  - include: playbooks/ssl/generate_certificate.yaml
+    vars:
+      certificate_cn: system:kube-proxy
+      file_name: kube-proxy
+      SSL_ORGANIZATION: system:node-proxier
+
+## Kubernetes Scheduler cert      
+  - include: playbooks/ssl/generate_certificate.yaml
+    vars:
+      certificate_cn: system:kube-scheduler
+      file_name: kube-scheduler
+      SSL_ORGANIZATION: system:kube-scheduler
+
+## Kubernetes Service accounts cert      
+  - include: playbooks/ssl/generate_certificate.yaml
+    vars:
+      certificate_cn: service-accounts
+      file_name: service-account
+
+## Kubernetes dashboard cert      
+  - include: playbooks/ssl/generate_certificate.yaml
+    vars:
+      certificate_cn: "{{ KUBERNETES_DASHBOARD_ADDRESS }}"
+      file_name: dashboard
+

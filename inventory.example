@@ -1,0 +1,61 @@
+[kubernetes_master]
+k8s-m1.local instance=k8s-master1 internal_ip=172.16.0.1
+k8s-m2.local instance=k8s-master2 internal_ip=172.16.0.2
+k8s-m3.local instance=k8s-master3 internal_ip=172.16.0.3
+
+[kubernetes_worker]
+k8s-w1.local instance=k8s-worker1 internal_ip=172.16.0.10
+k8s-w2.local instance=k8s-worker2 internal_ip=172.16.0.11
+
+[kubernetes_loadbalancers]
+k8s-haproxy1.local instance=k8s-haproxy1 internal_ip=172.16.0.254
+
+[localhost]
+127.0.0.1
+
+[kubernetes:children]
+kubernetes_master
+kubernetes_worker
+kubernetes_loadbalancers
+
+
+[kubernetes-api:children]
+kubernetes_loadbalancers
+kubernetes_master
+
+[all:children]
+kubernetes
+localhost
+
+[all:vars]
+KUBERNETES_PUBLIC_ADDRESS=k8s.local
+KUBERNETES_API_ADDRESS=k8s.local
+KUBERNETES_API_PORT=6443
+KUBERNETES_CLUSTER_NAME=k8s
+KUBERNETES_SERVICE_CLUSTER_IP_RANGE=100.70.250.0/24
+KUBERNETES_CLUSTER_CIDR=100.70.0.0/17
+KUBERNETES_CLUSTER_DNS=100.70.250.10
+KUBERNETES_DEFAULT_SERVICE=100.70.250.1
+KUBERNETES_DNS=8.8.8.8
+KUBERNETES_NODE_PORT_RANGE=30000-32767
+CERTS_PATH=./ssl/
+WORKDIR_PATH=./tmp/
+
+INGRESS_HTTP_PORT=30080
+INGRESS_HTTPS_PORT=30443
+DASHBOARD_HTTPS_PORT=30843
+KUBERNETES_DASHBOARD_ADDRESS=k8s.local
+
+ETCD_VER=v3.3.18
+ETCD_PEER_PORT=2380
+ETCD_CLIENT_PORT=2379
+
+SSL_COUNTRY=CZ
+SSL_LOCALITY=Prague
+SSL_STATE=Prague
+SSL_ORGANIZATION=My company
+SSL_ORGANIZATION_UNIT=My K8S cluster
+SSL_CA_CN=K8S CA Root 1
+
+[localhost:vars]
+WORKDIR_PATH=./tmp/

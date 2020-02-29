@@ -1,0 +1,7 @@
+
+  - name: Add alias ectl
+    replace:
+      path: ~/.bashrc
+      regexp: '^alias ectl'
+      replace: 'alias ectl='ETCDCTL_API=3 etcdctl --endpoints=172.16.240.81:2379,172.16.240.82:2379,172.16.240.99:2379 --cacert=/etc/etcd/ca.pem --cert=/etc/etcd/kubernetes-api.pem --key=/etc/etcd/kubernetes-api-key.pem''
+    become: true

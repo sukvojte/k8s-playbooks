@@ -1,0 +1,25 @@
+---
+  - debug:
+      msg: "Configure kube controller manager at {{ TARGET }}"
+
+  - include: playbooks/install_kube_binaries.yaml
+    vars:
+      BINARY_NAME: kube-controller-manager
+
+  - include: playbooks/configure_kube_context.yaml
+    vars:
+      context_type: kube-controller-manager
+      user_ident: system:kube-controller-manager
+  
+  - name: Copy CA certificate key
+    copy:
+      src: "{{ CERTS_PATH }}/ca-key.pem"
+      dest: "{{ TARGET }}"
+    become: true
+  
+  - name: Set up systemd service
+    template:
+      src: ../templates/master/kube-controller-manager.service.j2
+      dest: /etc/systemd/system/kube-controller-manager.service
+    become: true
+

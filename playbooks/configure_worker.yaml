@@ -1,0 +1,13 @@
+---
+
+## Install kubectl
+  - include: playbooks/install_kube_binaries.yaml
+    vars:
+      BINARY_NAME: kubectl
+    
+## Install kubelet
+  - include: playbooks/configure_kubelet.yaml
+
+## Install kube-proxy
+  - include: playbooks/configure_kubeproxy.yaml
+

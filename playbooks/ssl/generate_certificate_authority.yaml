@@ -1,0 +1,14 @@
+
+  - name: Generate SSL CA config
+    template:
+      src: ../templates/ssl/certificate-csr.json.j2
+      dest: "{{WORKDIR_PATH}}/ca-csr.json"
+    vars:
+      certificate_cn: "{{ SSL_CA_CN }}"
+  
+  - name: Generate SSL CA
+    shell: |
+      cfssl gencert -initca {{WORKDIR_PATH}}/ca-csr.json | cfssljson -bare {{CERTS_PATH}}/ca
+    args:
+      creates: "{{CERTS_PATH}}/ca.pem"
+

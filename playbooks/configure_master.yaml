@@ -1,0 +1,105 @@
+---
+
+## Create installation dirs
+  - name: Create /etc/kubernetes/config
+    file:
+      path: /etc/kubernetes/config
+      state: directory
+    become: true
+
+  - name: Create /var/lib/kubernetes/
+    file:
+      path: /var/lib/kubernetes/
+      state: directory
+    become: true
+
+## Install and configure k8s API server
+  - include: playbooks/master/configure_kubeapi_server.yaml
+    vars:
+      TARGET: /var/lib/kubernetes/
+
+## Install and configure k8s controller manager
+  - include: playbooks/master/configure_kube_controller_manager.yaml
+    vars:
+      TARGET: /var/lib/kubernetes/
+
+## Install and configure k8s scheduler
+  - include: playbooks/master/configure_kube_scheduler.yaml
+    vars:
+      TARGET: /var/lib/kubernetes/
+
+## Start all
+  - name: Reload systemd service service
+    systemd:
+      daemon_reload: yes
+    become: yes
+
+  - name: Start kube-apiserver service
+    systemd:
+      state: restarted
+      enabled: yes
+      name: kube-apiserver
+    become: yes
+
+  - name: Start kube-controller-manager service
+    systemd:
+      state: restarted
+      enabled: yes
+      name: kube-controller-manager
+    become: yes
+
+  - name: Start kube-scheduler service
+    systemd:
+      state: restarted
+      enabled: yes
+      name: kube-scheduler
+    become: yes
+
+## Set up admin config
+  - include: playbooks/configure_kube_context.yaml
+    vars:
+      context_type: admin
+      user_ident: admin
+      TARGET: ~/
+
+  - name: Set up admin cluster-role manifest
+    shell: |
+      kubectl apply --kubeconfig admin.kubeconfig -f -  
+    args:
+      chdir: ~/
+      stdin: "{{ lookup('file', '../manifests/cluster_role_admin.yaml') }}"
+    become: true  
+    run_once: true
+
+  - name: Set up admin cluster-role-binding manifest
+    shell: |
+      kubectl apply --kubeconfig admin.kubeconfig -f -
+    args:
+      chdir: ~/
+      stdin: "{{ lookup('file', '../manifests/cluster_role_binding_admin_kubernetes.yaml') }}"
+    become: true  
+    run_once: true
+
+  - name: Set taint master nodes as NoSchedule
+    shell: |
+      kubectl taint nodes {{ hostvars[item].instance }} key=value:NoSchedule --overwrite --kubeconfig admin.kubeconfig
+    args:
+      chdir: ~/
+    with_items: "{{ groups.kubernetes_master }}"
+    become: true  
+    run_once: true
+
+
+  - name: Show K8S Cluter status
+    shell: |
+      kubectl get nodes --kubeconfig admin.kubeconfig
+    args:
+      chdir: ~/
+    become: true
+    run_once: true
+    register: k8s_status
+  - debug: 
+      msg: "{{k8s_status.stdout_lines}}"
+    
+
+    

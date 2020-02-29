@@ -1,0 +1,24 @@
+---
+  - debug:
+      msg: "Install {{ BINARY_NAME }}"
+
+  - name: Get latest stable version
+    shell: |
+      curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt
+    register: k8s_version
+  - debug: 
+      msg: Latest stable k8s version is {{ k8s_version.stdout }}
+
+  - name: Download latest {{ BINARY_NAME }}
+    get_url:
+      url: https://storage.googleapis.com/kubernetes-release/release/{{ k8s_version.stdout }}/bin/linux/amd64/{{ BINARY_NAME }}
+      dest: /usr/local/bin/
+    become: yes
+
+  - name: Change {{ BINARY_NAME }} permissions
+    file:
+      path: "/usr/local/bin/{{ BINARY_NAME }}"
+      owner: root
+      group: root
+      mode: +x
+    become: yes

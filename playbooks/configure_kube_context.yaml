@@ -1,0 +1,59 @@
+---
+  - name: Copy CA certificate
+    copy:
+      src: "{{ CERTS_PATH }}/ca.pem"
+      dest: "{{ TARGET }}"
+    become: true
+
+  - name: Copy {{ context_type }} certificate
+    copy:
+      src: "{{ CERTS_PATH }}/{{ context_type }}.pem"
+      dest: "{{ TARGET }}"
+    become: true
+  
+  - name: Copy {{ context_type }} certificate key
+    copy:
+      src: "{{ CERTS_PATH }}/{{ context_type }}-key.pem"
+      dest: "{{ TARGET }}"
+      mode: u+rw,g-rwx,o-rwx
+    become: true
+
+  - name: Set up {{ context_type }} cluster
+    shell: |
+      kubectl config set-cluster {{ KUBERNETES_CLUSTER_NAME }} \
+      --certificate-authority=ca.pem \
+      --embed-certs=true \
+      --server=https://{{ KUBERNETES_API_ADDRESS }}:{{ KUBERNETES_API_PORT }} \
+      --kubeconfig={{ context_type }}.kubeconfig
+    args:
+      chdir: "{{ TARGET }}"
+    become: true
+
+  - name: Set up {{ context_type }} credentials
+    shell: |
+      kubectl config set-credentials {{ user_ident }} \
+      --client-certificate={{ context_type }}.pem \
+      --client-key={{ context_type }}-key.pem \
+      --embed-certs=true \
+      --kubeconfig={{ context_type }}.kubeconfig
+    args:
+      chdir: "{{ TARGET }}"
+    become: true
+
+  - name: Set up {{ context_type }} context
+    shell: |
+      kubectl config set-context default \
+      --cluster={{ KUBERNETES_CLUSTER_NAME }} \
+      --user={{ user_ident }} \
+      --kubeconfig={{ context_type }}.kubeconfig
+    args:
+      chdir: "{{ TARGET }}"
+    become: true
+
+  - name: Use {{ context_type }} context
+    shell: |
+      kubectl config use-context default --kubeconfig={{ context_type }}.kubeconfig    
+    args:
+      chdir: "{{ TARGET }}"
+    become: true
+  

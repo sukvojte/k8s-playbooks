@@ -1,0 +1,14 @@
+---  
+  - name: Disable LLMNR systemd-resolved
+    lineinfile:
+      path: /etc/systemd/resolved.conf
+      regexp: "LLMNR="
+      line: "LLMNR=false"
+    become: true
+
+  - name: Start systemd-resolved service
+    systemd:
+      state: restarted
+      enabled: yes
+      name: systemd-resolved
+    become: yes

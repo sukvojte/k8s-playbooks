@@ -1,0 +1,8 @@
+---
+  - name: Add cluster host to /etc/hosts   
+    lineinfile:
+      path: /etc/hosts
+      regexp: "'{{ hostvars[item].instance }}'"
+      line: "{{ hostvars[item].internal_ip }} {{ hostvars[item].instance }}"
+    with_items: "{{ groups.kubernetes }}"
+    become: true

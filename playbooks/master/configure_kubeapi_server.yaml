@@ -1,0 +1,39 @@
+---
+  - debug:
+      msg: "Configure kube API server at {{ TARGET }}"
+
+  - include: playbooks/install_kube_binaries.yaml
+    vars:
+      BINARY_NAME: kube-apiserver
+
+  - include: playbooks/configure_certs.yaml
+    vars:
+      CONTEXT_TYPE: kubernetes-api
+
+  - include: playbooks/configure_certs.yaml
+    vars:
+      CONTEXT_TYPE: service-account
+
+  - name: Copy encription key
+    copy:
+      src: "{{ WORKDIR_PATH }}/enc_key"
+      dest: ~/
+
+  - name: Get encription key
+    shell: |
+      cat ~/enc_key
+    register: enc_key
+
+  - name: Set up encryption-config
+    template:
+      src: ../templates/master/encryption-config.yaml.j2
+      dest: "{{ TARGET }}/encryption-config.yaml"
+    vars:
+      ENCRYPTION_KEY: "{{ enc_key.stdout }}"
+    become: true
+  
+  - name: Set up systemd service
+    template:
+      src: ../templates/master/kube-apiserver.service.j2
+      dest: /etc/systemd/system/kube-apiserver.service
+    become: true

@@ -1,0 +1,93 @@
+---
+  - name: Download latest etcd package
+    get_url:
+      url: "https://storage.googleapis.com/etcd/{{ ETCD_VER }}/etcd-{{ ETCD_VER }}-linux-amd64.tar.gz"
+      dest: "/tmp/etcd-{{ ETCD_VER }}-linux-amd64.tar.gz"
+  
+  - name: Unzip etcd package
+    unarchive:
+      src: "/tmp/etcd-{{ ETCD_VER }}-linux-amd64.tar.gz"
+      dest: "/tmp"
+      copy: no  
+
+  - name: Copy etcd to /usr/local/bin/
+    copy:
+      remote_src: yes
+      mode: +x
+      owner: root
+      group: root
+      src: "/tmp/etcd-{{ ETCD_VER }}-linux-amd64/etcd"
+      dest: /usr/local/bin/etcd
+    become: true
+  
+  - name: Copy etcdctl to /usr/local/bin/
+    copy:
+      remote_src: yes
+      mode: +x
+      owner: root
+      group: root
+      src: "/tmp/etcd-{{ ETCD_VER }}-linux-amd64/etcdctl"
+      dest: /usr/local/bin/etcdctl
+    become: true
+
+  - name: Create /etc/etcd
+    file:
+      path: /etc/etcd
+      state: directory
+    become: true
+
+  - name: Create /var/lib/etcd
+    file:
+      path: /var/lib/etcd
+      state: directory
+    become: true
+
+  - name: Copy CA certificate
+    copy:
+      src: "{{ CERTS_PATH }}/ca.pem"
+      dest: /etc/etcd/
+    become: true
+
+  - name: Copy kubernetes certificate
+    copy:
+      src: "{{ CERTS_PATH }}/kubernetes-api.pem"
+      dest: /etc/etcd/
+    become: true
+  
+  - name: Copy kubernetes certificate key
+    copy:
+      src: "{{ CERTS_PATH }}/kubernetes-api-key.pem"
+      dest: /etc/etcd/
+    become: true
+  
+  - name: Set up systemd service
+    template:
+      src: ../templates/etcd/etcd.service.j2
+      dest: /etc/systemd/system/etcd.service
+    vars:
+      ENCRYPTION_KEY: "{{ enc_key.stdout }}"
+    become: true
+
+  - name: Reload systemd service service
+    systemd:
+      daemon_reload: yes
+    become: yes
+
+  - name: Start etcd service
+    systemd:
+      state: restarted
+      enabled: yes
+      name: etcd
+    become: yes
+
+  - name: Show ETCD status
+    shell: |
+      sudo ETCDCTL_API=3 etcdctl member list \
+      --endpoints={% for name in groups['kubernetes_master'] %}https://{{ hostvars[name].internal_ip }}:{{ETCD_CLIENT_PORT}}{% if not loop.last %},{% endif %}{% endfor %} \
+      --cacert=/etc/etcd/ca.pem \
+      --cert=/etc/etcd/kubernetes-api.pem \
+      --key=/etc/etcd/kubernetes-api-key.pem
+    become: true
+    register: etcd_status
+  - debug: 
+      msg: "{{etcd_status.stdout_lines}}"

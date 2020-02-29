@@ -1,0 +1,16 @@
+{
+    "CN": "{{ certificate_cn }}",
+    "key": {
+      "algo": "rsa",
+      "size": 2048
+    },
+    "names": [
+      {
+        "C": "{{ SSL_COUNTRY }}",
+        "L": "{{ SSL_LOCALITY }}",
+        "O": "{{ SSL_ORGANIZATION }}",
+        "OU": "{{ SSL_ORGANIZATION_UNIT }}",
+        "ST": "{{ SSL_STATE }}"
+      }
+    ]
+  }

@@ -1,0 +1,21 @@
+---
+  - name: Download cri-tools package
+    get_url:
+      url: "https://github.com/kubernetes-sigs/cri-tools/releases/download/v1.15.0/crictl-v1.15.0-linux-amd64.tar.gz"
+      dest: "/tmp/crictl-v1.15.0-linux-amd64.tar.gz"
+  
+  - name: Unzip crictl package
+    unarchive:
+      src: "/tmp/crictl-v1.15.0-linux-amd64.tar.gz"
+      dest: "/tmp/"
+      copy: no  
+
+  - name: Copy crictl to /usr/local/bin/
+    copy:
+      remote_src: yes
+      mode: +x
+      owner: root
+      group: root
+      src: "/tmp/crictl"
+      dest: /usr/local/bin/crictl
+    become: true

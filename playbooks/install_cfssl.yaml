@@ -1,0 +1,41 @@
+---
+  - name: Download latest cfssl
+    get_url:
+      url: https://storage.googleapis.com/kubernetes-the-hard-way/cfssl/linux/cfssl
+      dest: /usr/local/bin/cfssl
+    become: yes
+  
+  - name: Change cfssl permissions
+    file:
+      path: /usr/local/bin/cfssl
+      owner: root
+      group: root
+      mode: +x
+    become: yes
+  
+  - name: Download latest cfssljson
+    get_url:
+      url: https://storage.googleapis.com/kubernetes-the-hard-way/cfssl/linux/cfssljson
+      dest: /usr/local/bin/cfssljson
+    become: yes
+  
+  - name: Change cfssljson permissions
+    file:
+      path: /usr/local/bin/cfssljson
+      owner: root
+      group: root
+      mode: +x
+    become: yes
+
+  - name: Check installed cfssl version
+    shell: |
+      cfssl version | grep "Version" | cut -d: -f2 | sed 's/ //g'
+    register: installed_cfssl_version
+
+  - name: Check installed cfssljson version
+    shell: |
+      cfssljson -version | grep "Version" | cut -d: -f2 | sed 's/ //g'
+    register: installed_cfssljson_version
+    
+  - debug: 
+      msg: Installed cfssl version is {{ installed_cfssl_version.stdout }} and cfssljson version is {{ installed_cfssljson_version.stdout }}

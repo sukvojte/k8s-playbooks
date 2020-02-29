@@ -1,0 +1,16 @@
+
+  - name: Generate {{ certificate_cn }} SSL certificate config
+    template:
+      src: ../templates/ssl/certificate-csr.json.j2
+      dest: "{{WORKDIR_PATH}}/{{ file_name }}-csr.json"
+
+  - name: Generate {{ certificate_cn }} SSL certificate
+    shell: |
+      cfssl gencert \
+      -ca={{CERTS_PATH}}/ca.pem \
+      -ca-key={{CERTS_PATH}}/ca-key.pem \
+      -config=./templates/ssl/ca-config.json \
+      -profile=kubernetes \
+      {{WORKDIR_PATH}}/{{ file_name }}-csr.json | cfssljson -bare {{CERTS_PATH}}/{{ file_name }}
+    args:
+      creates: "{{CERTS_PATH}}/{{ file_name }}.pem"

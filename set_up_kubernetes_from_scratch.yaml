@@ -1,0 +1,49 @@
+---
+
+- hosts: localhost
+  connection: local
+  gather_facts: no
+  tasks:
+     - include: playbooks/generate_encription_key.yaml
+     - include: playbooks/install_cfssl.yaml
+     - include: playbooks/ssl/generate_certificate_authority.yaml
+     - include: playbooks/ssl/generate_other_certificates.yaml
+     - include: playbooks/ssl/generate_api_certificate.yaml
+     - include: playbooks/ssl/generate_nodes_certificates.yaml
+
+- hosts: kubernetes_loadbalancers, kubernetes_master, kubernetes_worker
+  gather_facts: no
+  tasks:
+    - include: playbooks/configure_hosts.yaml
+
+- hosts: kubernetes_loadbalancers
+  gather_facts: no
+  tasks:
+    - include: playbooks/loadbalancer/configure_haproxy.yaml
+
+- hosts: kubernetes_master, kubernetes_worker
+  gather_facts: no
+  tasks:
+     - include: playbooks/configure_misc.yaml
+     - include: playbooks/configure_bashrc.yaml
+     - include: playbooks/install_cni_plugins.yaml
+     - include: playbooks/install_containerd.yaml
+     - include: playbooks/install_weave_tool.yaml
+     - include: playbooks/configure_worker.yaml
+     - include: playbooks/configure_systemd_resolved.yaml
+
+- hosts: kubernetes_master
+  gather_facts: no
+  tasks:
+    - include: playbooks/etcd/install_etcd.yaml
+    - include: playbooks/configure_master.yaml
+    - include: playbooks/controllers/configure_weave.yaml
+    - include: playbooks/controllers/configure_coredns.yaml
+    - include: playbooks/controllers/configure_ingress.yaml
+    - include: playbooks/controllers/configure_dashboard.yaml
+    - include: playbooks/controllers/hello-world.yaml
+
+
+
+
+

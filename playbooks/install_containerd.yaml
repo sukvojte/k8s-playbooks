@@ -1,0 +1,53 @@
+---
+## Gather facts
+  - name: Get lsb_release 
+    shell: |
+      lsb_release -cs
+    register: lsb_release
+    become: true
+  - debug: 
+      msg: lsb_release is {{ lsb_release.stdout }}
+
+  - name: Get distro 
+    shell: |
+      lsb_release -i | awk '{print $3}' | tr '[:upper:]' '[:lower:]'
+    register: distro
+    become: true
+  - debug: 
+      msg: distro is {{ distro.stdout }}
+ 
+## Add repository
+  - name: Add docker packages respository key
+    apt_key:
+      url: https://download.docker.com/linux/{{ distro.stdout }}/gpg
+      state: present
+    become: true
+
+  - name: Reload sysctl    
+    apt_repository:
+      repo: deb [arch=amd64] https://download.docker.com/linux/{{ distro.stdout }} {{ lsb_release.stdout }} stable
+      state: present
+    become: true
+
+## Install Containerd nd docker (for utils)
+  - name: Install Containerd
+    apt:
+      pkg:
+      - containerd.io
+      - docker-ce 
+      - docker-ce-cli
+    become: true
+
+## Update containerd config
+  - name: Update containerd config
+    template:
+      src: ../templates/containerd/config.toml.j2
+      dest: /etc/containerd/config.toml
+    become: true
+  
+  - name: Restart containerd service
+    systemd:
+      state: restarted
+      enabled: yes
+      name: containerd
+    become: yes

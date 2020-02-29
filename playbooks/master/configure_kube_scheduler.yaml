@@ -1,0 +1,25 @@
+---
+  - debug:
+      msg: "Configure kube controller manager at {{ TARGET }}"
+
+  - include: playbooks/install_kube_binaries.yaml
+    vars:
+      BINARY_NAME: kube-scheduler
+
+  - include: playbooks/configure_kube_context.yaml
+    vars:
+      context_type: kube-scheduler
+      user_ident: system:kube-scheduler
+
+  - name: Set up kube-scheduler configuration
+    template:
+      src: ../templates/master/kube-scheduler.yaml.j2
+      dest: /etc/kubernetes/config/kube-scheduler.yaml
+    become: true
+
+  - name: Set up systemd service
+    template:
+      src: ../templates/master/kube-scheduler.service.j2
+      dest: /etc/systemd/system/kube-scheduler.service
+    become: true
+

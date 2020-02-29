@@ -1,0 +1,16 @@
+---
+  
+  - name: Set up weave manifest
+    template:
+      src: ../templates/controllers/weave-daemonset.yaml.j2
+      dest: "~/weave-daemonset.yaml"
+    become: true
+
+  - name: Set up weave
+    shell: |
+      kubectl apply --kubeconfig admin.kubeconfig -f weave-daemonset.yaml
+    args:
+      chdir: ~/
+    become: true  
+    run_once: true
+  

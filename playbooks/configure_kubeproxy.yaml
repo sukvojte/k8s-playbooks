@@ -1,0 +1,53 @@
+---
+  - debug:
+      msg: "Configure kube-proxy for {{ instance }}"
+
+  - include: playbooks/install_kube_binaries.yaml
+    vars:
+      BINARY_NAME: kube-proxy
+
+  - name: Create /var/lib/kube-proxy
+    file:
+      path: /var/lib/kube-proxy/
+      state: directory
+    become: true
+
+  - name: Create kube-proxy config
+    template:
+      src: ../templates/kube-proxy/kube-proxy-config.yaml.j2
+      dest: /var/lib/kube-proxy/kube-proxy-config.yaml
+    become: true
+
+  - include: playbooks/configure_kube_context.yaml
+    vars:
+      context_type: kube-proxy
+      user_ident: system:kube-proxy
+      TARGET: /var/lib/kube-proxy/
+ 
+  - name: Create /var/lib/kube-proxy/kubeconfig
+    copy:
+      remote_src: yes
+      mode: +x
+      owner: root
+      group: root
+      src: /var/lib/kube-proxy/kube-proxy.kubeconfig
+      dest: /var/lib/kube-proxy/kubeconfig
+    become: true
+  
+  - name: Create kube-proxy service
+    template:
+      src: ../templates/kube-proxy/kube-proxy.service.j2
+      dest: /etc/systemd/system/kube-proxy.service
+    become: true
+  
+  - name: Reload kube-proxy service
+    systemd:
+      daemon_reload: yes
+    become: yes
+
+  - name: Start kube-proxy service
+    systemd:
+      state: restarted
+      enabled: yes
+      name: kube-proxy
+    become: yes

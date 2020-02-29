@@ -1,0 +1,15 @@
+---
+  
+  - name: Set up coredns manifest
+    template:
+      src: ../templates/controllers/coredns.yaml.j2
+      dest: "~/coredns.yaml"
+    become: true
+
+  - name: Set up weave
+    shell: |
+      kubectl apply --kubeconfig admin.kubeconfig -f coredns.yaml
+    args:
+      chdir: ~/
+    become: true  
+    run_once: true

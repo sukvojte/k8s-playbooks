@@ -1,0 +1,37 @@
+---
+  
+  - name: Create /etc/cni/net.d
+    file:
+      path: /etc/cni/net.d/
+      state: directory
+    become: true
+
+  - name: Create /opt/cni/bin
+    file:
+      path: /opt/cni/bin/
+      state: directory
+    become: true
+  
+  - name: Download cni plugins package
+    get_url:
+      url: "https://github.com/containernetworking/plugins/releases/download/v0.8.2/cni-plugins-linux-amd64-v0.8.2.tgz"
+      dest: "/tmp/cni-plugins-linux-amd64-v0.8.2.tgz"
+  
+  - name: Unzip cni plugins package
+    unarchive:
+      src: "/tmp/cni-plugins-linux-amd64-v0.8.2.tgz"
+      dest: /opt/cni/bin/
+      copy: no  
+    become: true
+
+#  - name: Set up cni bridge config
+#    template:
+#      src: ../templates/cni/10-bridge.conf.j2
+#      dest: /etc/cni/net.d/10-bridge.conf
+#    become: true
+
+  - name: Set up cni loopback config
+    template:
+      src: ../templates/cni/99-loopback.conf.j2
+      dest: /etc/cni/net.d/99-loopback.conf
+    become: true

@@ -1,0 +1,15 @@
+---
+
+  - name: Set up dashboard manifest
+    template:
+      src: ../templates/controllers/kubernetes-dashboard.yaml.j2
+      dest: "~/kubernetes-dashboard.yaml"
+    become: true
+
+  - name: Set up dashboard
+    shell: |
+      kubectl apply --kubeconfig admin.kubeconfig -f kubernetes-dashboard.yaml
+    args:
+      chdir: ~/
+    become: true  
+    run_once: true

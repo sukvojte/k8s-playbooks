@@ -1,0 +1,23 @@
+---
+  - debug:
+      msg: "Install {{ CONTEXT_TYPE }} certificate to {{ TARGET }}"
+
+  - name: Copy CA certificate
+    copy:
+      src: "{{ CERTS_PATH }}/ca.pem"
+      dest: "{{ TARGET }}"
+    become: yes
+
+  - name: Copy {{ CONTEXT_TYPE }} certificate
+    copy:
+      src: "{{ CERTS_PATH }}/{{ CONTEXT_TYPE }}.pem"
+      dest: "{{ TARGET }}"
+    become: yes
+  
+  - name: Copy {{ CONTEXT_TYPE }} certificate key
+    copy:
+      src: "{{ CERTS_PATH }}/{{ CONTEXT_TYPE }}-key.pem"
+      dest: "{{ TARGET }}"
+      mode: u+rw,g-rwx,o-rwx
+    become: yes
+  

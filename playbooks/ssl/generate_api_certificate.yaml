@@ -1,0 +1,19 @@
+
+  - name: Generate API SSL certificate config
+    template:
+      src: ../templates/ssl/certificate-csr.json.j2
+      dest: "{{WORKDIR_PATH}}/kubernetes-api-csr.json"
+    vars:
+      certificate_cn: kubernetes
+
+  - name: Generate API SSL certificate
+    shell: |
+      cfssl gencert \
+      -ca={{CERTS_PATH}}/ca.pem \
+      -ca-key={{CERTS_PATH}}/ca-key.pem \
+      -config=./templates/ssl/ca-config.json \
+      -hostname={% for name in groups['kubernetes-api'] %}{{ name }},{{ hostvars[name].internal_ip }}{% if not loop.last %},{% endif %}{% endfor %},{{KUBERNETES_PUBLIC_ADDRESS}},{{KUBERNETES_DEFAULT_SERVICE}} \
+      -profile=kubernetes \
+      {{WORKDIR_PATH}}/kubernetes-api-csr.json | cfssljson -bare {{CERTS_PATH}}/kubernetes-api
+    args:
+      creates: "{{CERTS_PATH}}/kubernetes-api.pem"

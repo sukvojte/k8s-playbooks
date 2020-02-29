@@ -1,0 +1,14 @@
+---
+  - name: Set up ingress manifest
+    template:
+      src: ../templates/controllers/ingress.yaml.j2
+      dest: "~/ingress.yaml"
+    become: true
+
+  - name: Set up ingress
+    shell: |
+      kubectl apply --kubeconfig admin.kubeconfig -f ingress.yaml
+    args:
+      chdir: ~/
+    become: true  
+    run_once: true

@@ -1,0 +1,6 @@
+---
+  - name: Generate encryption encription key
+    shell: |
+      head -c 32 /dev/urandom | base64 > {{ WORKDIR_PATH }}/enc_key
+    args:
+      creates: "{{ WORKDIR_PATH }}/enc_key"

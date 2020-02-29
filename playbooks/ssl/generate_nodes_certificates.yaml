@@ -1,0 +1,25 @@
+
+  - name: Generate SSL CA config
+    template:
+      src: ../templates/ssl/certificate-csr.json.j2
+      dest: "{{WORKDIR_PATH}}/{{ hostvars[item].instance }}-csr.json"
+    vars:
+      certificate_cn: "system:node:{{ hostvars[item].instance }}"
+      SSL_ORGANIZATION: system:nodes
+    with_items:
+      - "{{ groups['kubernetes'] }}"
+
+  - name: Generate SSL CA
+    shell: |
+      cfssl gencert \
+      -ca={{CERTS_PATH}}/ca.pem \
+      -ca-key={{CERTS_PATH}}/ca-key.pem \
+      -config=./templates/ssl/ca-config.json \
+      -hostname={{ hostvars[item].instance }},{{ hostvars[item].internal_ip }},{{ item }} \
+      -profile=kubernetes \
+      {{WORKDIR_PATH}}/{{ hostvars[item].instance }}-csr.json | cfssljson -bare {{CERTS_PATH}}/{{ hostvars[item].instance }}
+    args:
+      creates: "{{CERTS_PATH}}/{{ hostvars[item].instance }}.pem"
+    with_items:
+      - "{{ groups['kubernetes'] }}"
+

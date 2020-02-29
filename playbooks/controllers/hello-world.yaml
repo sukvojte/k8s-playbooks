@@ -1,0 +1,15 @@
+---
+  
+  - name: Set up coredns manifest
+    template:
+      src: ../templates/controllers/hello-world.yaml.j2
+      dest: "~/hello-world.yaml"
+    become: true
+
+  - name: Set up weave
+    shell: |
+      kubectl apply --kubeconfig admin.kubeconfig -f hello-world.yaml
+    args:
+      chdir: ~/
+    become: true  
+    run_once: true
